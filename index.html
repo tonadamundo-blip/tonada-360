@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tonada 360 - Tour Completo</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #111;
+        }
+        #panorama { width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        .top-bar {
+            position: absolute; top: 12px; left: 15px; z-index: 10;
+            background: rgba(0, 0, 0, 0.8); color: white; padding: 6px 12px;
+            border-radius: 8px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.15);
+            display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .top-bar h1 { margin: 0; font-size: 13px; color: #ffcc00; }
+        
+        .search-box-container {
+            display: flex; align-items: center; background: white; border-radius: 4px; padding: 2px 4px; gap: 4px;
+        }
+        .search-box-container select {
+            border: none; outline: none; font-size: 10px; background: #eee; padding: 2px; border-radius: 3px; cursor: pointer; color: #333;
+        }
+
+        .btn-registro-negocio {
+            background: #25d366; color: white; border: none; padding: 4px 8px;
+            border-radius: 4px; font-weight: bold; font-size: 10px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-registro-negocio:hover { background: #20ba5a; }
+
+        .pnlm-compass { top: 20px !important; right: 20px !important; left: auto !important; }
+
+        .right-floating-panels {
+            position: absolute; right: 15px; bottom: 15px; width: 300px; z-index: 10;
+            display: flex; flex-direction: column; gap: 8px; max-height: 85vh;
+        }
+
+        .social-container {
+            width: 100%; height: 240px; background: rgba(255, 255, 255, 0.95); border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .social-container.minimized { height: 36px; }
+        .panel-header { background: linear-gradient(135deg, #ff5722, #f4511e); color: white; padding: 6px 10px; font-weight: bold; text-align: center; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+
+        .bot-flotante-container {
+            width: 100%; height: 160px; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; overflow: hidden; border: 2px solid #009688;
+        }
+        .bot-flotante-container.minimized { height: 36px; }
+        .bot-header { background: #009688; color: white; padding: 5px 10px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-minimize { background: none; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 10px; }
+
+        .radar-box { background: #fff8e1; padding: 4px 8px; border-bottom: 1px solid #ddd; font-size: 10px; }
+        .chat-tabs { display: flex; background: #eee; border-bottom: 1px solid #ccc; }
+        .chat-tab { flex: 1; padding: 3px; text-align: center; font-size: 9px; font-weight: bold; cursor: pointer; background: #e0e0e0; border: none; }
+        .chat-tab.active { background: white; color: #ff5722; border-bottom: 2px solid #ff5722; }
+
+        .chat-messages { flex: 1; padding: 5px; overflow-y: auto; font-size: 10px; background: #fafafa; }
+        .chat-input-area { display: flex; padding: 4px; background: #eee; border-top: 1px solid #ddd; }
+        .chat-input-area input { flex: 1; padding: 4px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 10px; }
+        .chat-input-area button { background: #ff5722; color: white; border: none; padding: 4px 6px; margin-left: 3px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px; }
+
+        .bot-messages { flex: 1; padding: 5px; overflow-y: auto; font-size: 10px; background: #f0fdfc; }
+        .bot-input { display: flex; padding: 4px; background: #e0f2f1; }
+        .bot-input input { flex: 1; padding: 3px; border: 1px solid #80cbc4; border-radius: 3px; outline: none; font-size: 10px; }
+        .bot-input button { background: #009688; color: white; border: none; padding: 3px 5px; margin-left: 3px; border-radius: 3px; cursor: pointer; font-size: 10px; }
+
+        .modal-general {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 320px; background: white; padding: 20px; border-radius: 12px; z-index: 100;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6); text-align: center;
+        }
+        .modal-general input, .modal-general select, .modal-general textarea { width: 100%; padding: 6px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 11px; }
+        .btn-accion-grupo { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-menu { flex: 1; background: #ff9800; color: white; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; }
+        .btn-pedido { flex: 1; background: #25d366; color: white; padding: 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; }
+        .close-btn { background: #ff4444; color: white; border: none; padding: 3px 6px; border-radius: 3px; cursor: pointer; float: right; font-weight: bold; font-size: 10px; }
+
+        .hud-navigation-panel {
+            position: absolute; bottom: 15px; left: 15px; z-index: 10;
+            background: rgba(0, 0, 0, 0.85); padding: 8px 10px; border-radius: 10px;
+            backdrop-filter: blur(5px); border: 2px solid #ff9800; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 6px; width: 200px;
+        }
+        .hud-navigation-panel h4 { 
+            margin: 0; color: #ffcc00; font-size: 11px; text-align: center; text-transform: uppercase; 
+            border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px;
+        }
+        .hud-buttons-group { display: flex; gap: 6px; }
+        .hud-btn {
+            flex: 1; background: linear-gradient(135deg, #ff9800, #f57c00); color: white; padding: 6px;
+            border-radius: 5px; font-weight: bold; font-size: 10px; cursor: pointer; border: 1px solid white;
+            text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: 0.2s;
+        }
+        .hud-btn:hover { background: linear-gradient(135deg, #ffa726, #fb8c00); transform: scale(1.03); }
+    </style>
+</head>
+<body onload="iniciarPlataforma()">
+
+    <div class="top-bar">
+        <div>
+            <h1>Tonada 360</h1>
+        </div>
+        <div class="search-box-container">
+            <span>🔍</span>
+            <select id="buscadorLugares" onchange="irAEscenaSeleccionada(this.value)">
+                <option value="">Escena...</option>
+                <option value="escena1">1. Cerro Toco</option>
+                <option value="escena2">2. Alma Inmersiva</option>
+                <option value="escena3">3. Bargate Histórico</option>
+                <option value="escena4">4. Cerro Toco - Alta</option>
+                <option value="escena5">5. Alma - Norte</option>
+                <option value="escena6">6. Bargate - Mirador</option>
+                <option value="escena7">7. Cerro Toco - Base</option>
+                <option value="escena8">8. Alma - Ribera</option>
+                <option value="escena9">9. Bargate - Cumbre</option>
+                <option value="escena10">10. Cerro Toco - Refugio</option>
+            </select>
+        </div>
+        <button class="btn-registro-negocio" onclick="abrirModalRegistro()">+ Negocio</button>
+    </div>
+
+    <div id="panorama"></div>
+
+    <div class="hud-navigation-panel">
+        <h4 id="hudTituloEscena">1. Cerro Toco</h4>
+        <div class="hud-buttons-group">
+            <button class="hud-btn" onclick="moverEscenaRelativa(-1)">⬅️ Ant.</button>
+            <button class="hud-btn" onclick="moverEscenaRelativa(1)">Sig. ➡️</button>
+        </div>
+    </div>
+
+    <div class="right-floating-panels">
+        <div class="bot-flotante-container minimized" id="botPanel">
+            <div class="bot-header">
+                <span>🤖 Bot Ayuda</span>
+                <button class="btn-minimize" onclick="toggleMinimizarBot()" id="btnMinBot">Abrir</button>
+            </div>
+            <div class="bot-messages" id="botMessages">
+                <p><b>Bot:</b> ¡Hola! Usa los botones inferiores para navegar.</p>
+            </div>
+            <div class="bot-input">
+                <input type="text" id="botInputText" placeholder="Pregunta al bot...">
+                <button onclick="enviarMensajeBot()">Enviar</button>
+            </div>
+        </div>
+
+        <div class="social-container minimized" id="socialPanel">
+            <div class="panel-header">
+                <span>💬 Comunidad</span>
+                <button class="btn-minimize" onclick="toggleMinimizarSocial()" id="btnMinSocial">Abrir</button>
+            </div>
+            
+            <div class="radar-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight: bold; color: #d84315;">🟢 <span id="lblMiNick">Viajero_97</span></span>
+                    <button onclick="cambiarNick()" style="background:#ff5722; color:white; border:none; padding:2px 4px; border-radius:3px; font-size:9px; cursor:pointer;">Cambiar</button>
+                </div>
+            </div>
+
+            <div class="chat-tabs">
+                <button class="chat-tab active" onclick="cambiarCanal('abierto')" id="tabAbierto">🌍 Abierto</button>
+                <button class="chat-tab" onclick="cambiarCanal('privado')" id="tabPrivado">🔒 Privado</button>
+                <button class="chat-tab" onclick="cambiarCanal('duo')" id="tabDuo">💬 Dúo</button>
+            </div>
+            
+            <div class="chat-messages" id="boxMessages">
+                <p style="color: #666; text-align: center; margin: 2px;">Conectados en la plataforma:</p>
+                <p style="margin:2px 0;">👤 Carlos W.</p>
+                <p style="margin:2px 0;">👤 Viajero_97 (Tú)</p>
+            </div>
+            
+            <div class="chat-input-area">
+                <input type="text" id="msgInput" placeholder="Escribe mensaje...">
+                <button onclick="enviarMensajeChat()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-general" id="modalRegistroNegocio">
+        <button class="close-btn" onclick="cerrarModal('modalRegistroNegocio')">X</button>
+        <h3 style="margin-top:0; color:#25d366; font-size:14px;">Registra tu Negocio</h3>
+        <input type="text" id="regNombre" placeholder="Tu Nombre">
+        <input type="text" id="regNumero" placeholder="Celular / WhatsApp">
+        <input type="text" id="regNegocio" placeholder="Nombre del Negocio">
+        <textarea id="regDetalle" placeholder="Detalle (Opcional)" rows="2"></textarea>
+        <button onclick="enviarRegistroWhatsApp()" style="width:100%; background:#25d366; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer; margin-top:8px; font-size:11px;">Enviar a WhatsApp</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <script>
+        let miApodo = "Viajero_97";
+        let canalActual = "abierto";
+        let viewerInstance;
+        let indiceEscenaActual = 1;
+        const totalEscenas = 10;
+
+        const listaEscenasIDs = [
+            "escena1", "escena2", "escena3", "escena4", "escena5",
+            "escena6", "escena7", "escena8", "escena9", "escena10"
+        ];
+
+        const nombresEscenas = [
+            "1. Cerro Toco", "2. Alma Inmersiva", "3. Bargate Histórico",
+            "4. Cerro Toco - Alta", "5. Alma - Norte", "6. Bargate - Mirador",
+            "7. Cerro Toco - Base", "8. Alma - Ribera", "9. Bargate - Cumbre", "10. Cerro Toco - Refugio"
+        ];
+
+        function iniciarPlataforma() {
+            viewerInstance = pannellum.viewer('panorama', {
+                "default": { "firstScene": "escena1", "autoLoad": true, "compass": true },
+                "scenes": {
+                    "escena1": { "title": "1. Cerro Toco", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto1.jpg", "hotSpots": [] },
+                    "escena2": { "title": "2. Alma Inmersiva", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto2.jpg", "hotSpots": [] },
+                    "escena3": { "title": "3. Bargate Histórico", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto3.jpg", "hotSpots": [] },
+                    "escena4": { "title": "4. Cerro Toco - Alta", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto4.jpg", "hotSpots": [] },
+                    "escena5": { "title": "5. Alma - Norte", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto5.jpg", "hotSpots": [] },
+                    "escena6": { "title": "6. Bargate - Mirador", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto6.jpg", "hotSpots": [] },
+                    "escena7": { "title": "7. Cerro Toco - Base", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto7.jpg", "hotSpots": [] },
+                    "escena8": { "title": "8. Alma - Ribera", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto8.jpg", "hotSpots": [] },
+                    "escena9": { "title": "9. Bargate - Cumbre", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto9.jpg", "hotSpots": [] },
+                    "escena10": { "title": "10. Cerro Toco - Refugio", "type": "equirectangular", "panorama": "https://raw.githubusercontent.com/tonadamundo-blip/tonada-360-fotos-1/main/foto10.jpg", "hotSpots": [] }
+                }
+            });
+        }
+
+        function moverEscenaRelativa(direccion) {
+            indiceEscenaActual += direccion;
+            if(indiceEscenaActual > totalEscenas) indiceEscenaActual = 1;
+            if(indiceEscenaActual < 1) indiceEscenaActual = totalEscenas;
+            let idDestino = listaEscenasIDs[indiceEscenaActual - 1];
+            viewerInstance.loadScene(idDestino);
+            document.getElementById('hudTituloEscena').innerText = nombresEscenas[indiceEscenaActual - 1];
+        }
+
+        function irAEscenaSeleccionada(escenaId) {
+            if(escenaId && viewerInstance) {
+                viewerInstance.loadScene(escenaId);
+                let indexFound = listaEscenasIDs.indexOf(escenaId);
+                if(indexFound !== -1) {
+                    indiceEscenaActual = indexFound + 1;
+                    document.getElementById('hudTituloEscena').innerText = nombresEscenas[indiceEscenaActual - 1];
+                }
+                document.getElementById('buscadorLugares').value = "";
+            }
+        }
+
+        function cambiarNick() {
+            let nuevoNick = prompt("Actualiza tu Apodo:", miApodo);
+            if(nuevoNick && nuevoNick.trim() !== "") {
+                miApodo = nuevoNick.trim();
+                document.getElementById('lblMiNick').innerText = miApodo;
+            }
+        }
+
+        function toggleMinimizarSocial() {
+            let panel = document.getElementById('socialPanel');
+            let btn = document.getElementById('btnMinSocial');
+            panel.classList.toggle('minimized');
+            btn.innerText = panel.classList.contains('minimized') ? "Abrir" : "_ Minimizar";
+        }
+
+        function toggleMinimizarBot() {
+            let panel = document.getElementById('botPanel');
+            let btn = document.getElementById('btnMinBot');
+            panel.classList.toggle('minimized');
+            btn.innerText = panel.classList.contains('minimized') ? "Abrir" : "_ Minimizar";
+        }
+
+        function cambiarCanal(canal) {
+            canalActual = canal;
+            document.getElementById('tabAbierto').className = canal === 'abierto' ? 'chat-tab active' : 'chat-tab';
+            document.getElementById('tabPrivado').className = canal === 'privado' ? 'chat-tab active' : 'chat-tab';
+            document.getElementById('tabDuo').className = canal === 'duo' ? 'chat-tab active' : 'chat-tab';
+
+            if(canal === 'privado') {
+                let nombreSala = prompt("Crea el nombre de tu Sala Privada:");
+                let passSala = prompt("Crea una contraseña para tu Sala:");
+                if(nombreSala && passSala) {
+                    alert(`Sala privada "${nombreSala}" creada con éxito.`);
+                }
+            } else if(canal === 'duo') {
+                let amigo = prompt("Ingresa el nombre o usuario con quien deseas abrir el chat Dúo:");
+                if(amigo) {
+                    alert(`Canal Dúo abierto con ${amigo}.`);
+                }
+            }
+        }
+
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+        function abrirModalRegistro() { document.getElementById('modalRegistroNegocio').style.display = 'block'; }
+
+        function enviarRegistroWhatsApp() {
+            let nombre = document.getElementById('regNombre').value;
+            let numero = document.getElementById('regNumero').value;
+            let negocio = document.getElementById('regNegocio').value;
+            let detalle = document.getElementById('regDetalle').value;
+            if(nombre && numero && negocio) {
+                let texto = `Hola Tonada Conecta, quiero registrar mi negocio:%0A*Nombre:* ${nombre}%0A*Celular:* ${numero}%0A*Negocio:* ${negocio}%0A*Detalle:* ${detalle}`;
+                window.open(`https://wa.me/51928362491?text=${texto}`, '_blank');
+                cerrarModal('modalRegistroNegocio');
+            } else { alert("Completa los campos obligatorios."); }
+        }
+
+        function enviarMensajeChat() {
+            const input = document.getElementById('msgInput');
+            const box = document.getElementById('boxMessages');
+            if(input.value.trim() !== "") {
+                box.innerHTML += `<p style="margin:2px 0;"><b>${miApodo}:</b> ${input.value}</p>`;
+                input.value = "";
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function enviarMensajeBot() {
+            const input = document.getElementById('botInputText');
+            const box = document.getElementById('botMessages');
+            let texto = input.value.trim();
+            if(texto !== "") {
+                box.innerHTML += `<p style="margin:2px 0;"><b>Tú:</b> ${texto}</p>`;
+                setTimeout(() => {
+                    let respuestaBot = "Usa los botones inferiores Ant. y Sig. para recorrer el tour 360.";
+                    let t = texto.toLowerCase();
+                    if(t.includes("asesor") || t.includes("humano") || t.includes("contacto") || t.includes("atención")) {
+                        respuestaBot = "Derivando con asesor humano... haz clic aquí para abrir WhatsApp.";
+                        window.open("https://wa.me/51928362491?text=Hola,%20necesito%20asistencia%20humana%20con%20el%20tour%20Tonada%20360", "_blank");
+                    }
+                    box.innerHTML += `<p style="margin:2px 0; color:#00796b;"><b>Bot:</b> ${respuestaBot}</p>`;
+                    box.scrollTop = box.scrollHeight;
+                }, 400);
+                input.value = "";
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
