@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tonada 360 - 10 Escenarios Pro</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #111;
+        }
+        #panorama { width: 100%; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        .top-bar {
+            position: absolute; top: 15px; left: 65px; z-index: 10;
+            background: rgba(0, 0, 0, 0.85); color: white; padding: 8px 15px;
+            border-radius: 10px; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .top-bar h1 { margin: 0; font-size: 14px; color: #ffcc00; }
+        
+        .search-box-container {
+            display: flex; align-items: center; background: white; border-radius: 6px; padding: 2px 6px; gap: 5px;
+        }
+        .search-box-container select {
+            border: none; outline: none; font-size: 11px; background: #eee; padding: 3px; border-radius: 4px; cursor: pointer; color: #333;
+        }
+
+        .btn-registro-negocio {
+            background: #25d366; color: white; border: none; padding: 5px 10px;
+            border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; transition: 0.2s;
+        }
+        .btn-registro-negocio:hover { background: #20ba5a; }
+
+        .pnlm-compass { top: 20px !important; right: 20px !important; left: auto !important; }
+
+        .right-floating-panels {
+            position: absolute; right: 20px; bottom: 20px; width: 340px; z-index: 10;
+            display: flex; flex-direction: column; gap: 10px; max-height: 90vh;
+        }
+
+        .social-container {
+            width: 100%; height: 280px; background: rgba(255, 255, 255, 0.97); border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .social-container.minimized { height: 42px; }
+        .panel-header { background: linear-gradient(135deg, #ff5722, #f4511e); color: white; padding: 8px 12px; font-weight: bold; text-align: center; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+        .bot-flotante-container {
+            width: 100%; height: 190px; background: white; border-radius: 14px; box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; overflow: hidden; border: 2px solid #009688;
+        }
+        .bot-flotante-container.minimized { height: 42px; }
+        .bot-header { background: #009688; color: white; padding: 6px 12px; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-minimize { background: none; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 11px; }
+
+        .radar-box { background: #fff8e1; padding: 5px 10px; border-bottom: 1px solid #ddd; font-size: 11px; }
+        .chat-tabs { display: flex; background: #eee; border-bottom: 1px solid #ccc; }
+        .chat-tab { flex: 1; padding: 4px; text-align: center; font-size: 10px; font-weight: bold; cursor: pointer; background: #e0e0e0; border: none; }
+        .chat-tab.active { background: white; color: #ff5722; border-bottom: 2px solid #ff5722; }
+
+        .chat-messages { flex: 1; padding: 6px; overflow-y: auto; font-size: 11px; background: #fafafa; }
+        .chat-input-area { display: flex; padding: 5px; background: #eee; border-top: 1px solid #ddd; }
+        .chat-input-area input { flex: 1; padding: 5px; border: 1px solid #ccc; border-radius: 6px; outline: none; font-size: 11px; }
+        .chat-input-area button { background: #ff5722; color: white; border: none; padding: 5px 8px; margin-left: 4px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; }
+
+        .bot-messages { flex: 1; padding: 6px; overflow-y: auto; font-size: 11px; background: #f0fdfc; }
+        .bot-input { display: flex; padding: 5px; background: #e0f2f1; }
+        .bot-input input { flex: 1; padding: 4px; border: 1px solid #80cbc4; border-radius: 4px; outline: none; font-size: 11px; }
+        .bot-input button { background: #009688; color: white; border: none; padding: 4px 6px; margin-left: 4px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+
+        .modal-general {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 360px; background: white; padding: 25px; border-radius: 16px; z-index: 100;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6); text-align: center;
+        }
+        .modal-general input, .modal-general select, .modal-general textarea { width: 100%; padding: 8px; margin: 6px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 12px; }
+        .btn-accion-grupo { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-menu { flex: 1; background: #ff9800; color: white; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-pedido { flex: 1; background: #25d366; color: white; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .close-btn { background: #ff4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; font-weight: bold; }
+
+        .modal-menu-visor {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; max-width: 600px; background: white; padding: 20px; border-radius: 16px; z-index: 110;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); text-align: center;
+        }
+        .modal-menu-visor img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-top: 10px; }
+
+        .hud-navigation-panel {
+            position: absolute; bottom: 20px; left: 20px; z-index: 10;
+            background: rgba(0, 0, 0, 0.85); padding: 10px 12px; border-radius: 12px;
+            backdrop-filter: blur(6px); border: 2px solid #ff9800; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 8px; width: 220px;
+        }
+        .hud-navigation-panel h4 { 
+            margin: 0; color: #ffcc00; font-size: 12px; text-align: center; text-transform: uppercase; 
+            border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px;
+        }
+        .hud-buttons-group { display: flex; gap: 8px; }
+        .hud-btn {
+            flex: 1; background: linear-gradient(135deg, #ff9800, #f57c00); color: white; padding: 8px;
+            border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; border: 1px solid white;
+            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: 0.2s;
+        }
+        .hud-btn:hover { background: linear-gradient(135deg, #ffa726, #fb8c00); transform: scale(1.05); }
+    </style>
+</head>
+<body onload="iniciarPlataforma()">
+
+    <div class="top-bar">
+        <div>
+            <h1>Tonada 360 - 10 Escenarios</h1>
+            <p style="margin:2px 0 0; font-size:10px; color:#ccc;">Navegación fluida y segura</p>
+        </div>
+
+        <div class="search-box-container">
+            <span>🔍</span>
+            <select id="buscadorLugares" onchange="irAEscenaSeleccionada(this.value)">
+                <option value="">Buscar escena...</option>
+                <option value="escena1">1. Cerro Toco (Paisaje 1)</option>
+                <option value="escena2">2. Alma Inmersiva (Paisaje 2)</option>
+                <option value="escena3">3. Bargate Histórico (Paisaje 3)</option>
+                <option value="escena4">4. Cerro Toco - Zona Alta (Paisaje 4)</option>
+                <option value="escena5">5. Alma - Sector Norte (Paisaje 5)</option>
+                <option value="escena6">6. Bargate - Mirador (Paisaje 6)</option>
+                <option value="escena7">7. Cerro Toco - Base (Paisaje 7)</option>
+                <option value="escena8">8. Alma - Ribera (Paisaje 8)</option>
+                <option value="escena9">9. Bargate - Cumbre (Paisaje 9)</option>
+                <option value="escena10">10. Cerro Toco - Refugio (Paisaje 10)</option>
+            </select>
+        </div>
+
+        <button class="btn-registro-negocio" onclick="abrirModalRegistro()">+ Pon tu Negocio</button>
+    </div>
+
+    <div id="panorama"></div>
+
+    <div class="hud-navigation-panel">
+        <h4 id="hudTituloEscena">1. Cerro Toco</h4>
+        <div class="hud-buttons-group">
+            <button class="hud-btn" onclick="moverEscenaRelativa(-1)">⬅️ Anterior</button>
+            <button class="hud-btn" onclick="moverEscenaRelativa(1)">Siguiente ➡️</button>
+        </div>
+    </div>
+
+    <div class="right-floating-panels">
+        <div class="bot-flotante-container" id="botPanel">
+            <div class="bot-header">
+                <span>🤖 Bot de Ayuda Tonada</span>
+                <button class="btn-minimize" onclick="toggleMinimizarBot()">_ Minimizar</button>
+            </div>
+            <div class="bot-messages" id="botMessages">
+                <p><b>Bot:</b> ¡Hola! Usa los botones de abajo a la izquierda para navegar entre escenarios.</p>
+            </div>
+            <div class="bot-input">
+                <input type="text" id="botInputText" placeholder="Pregunta al bot...">
+                <button onclick="enviarMensajeBot()">Enviar</button>
+            </div>
+        </div>
+
+        <div class="social-container" id="socialPanel">
+            <div class="panel-header">
+                <span>Comunidad Social 360</span>
+                <button class="btn-minimize" onclick="toggleMinimizarSocial()">_ Minimizar</button>
+            </div>
+            
+            <div class="radar-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight: bold; color: #d84315;">🟢 Tú: <span id="lblMiNick">Viajero</span></span>
+                    <button onclick="cambiarNick()" style="background:#ff5722; color:white; border:none; padding:2px 5px; border-radius:3px; font-size:9px; cursor:pointer;">Cambiar</button>
+                </div>
+            </div>
+
+            <div class="chat-tabs">
+                <button class="chat-tab active" onclick="cambiarCanal('abierto')" id="tabAbierto">🌍 Abierto</button>
+                <button class="chat-tab" onclick="cambiarCanal('privado')" id="tabPrivado">🔒 Privado</button>
+                <button class="chat-tab" onclick="cambiarCanal('duo')" id="tabDuo">💬 Dúo</button>
+            </div>
+            
+            <div class="chat-messages" id="boxMessages">
+                <p style="color: #666; text-align: center; margin-top: 2px;">Canal general abierto.</p>
+            </div>
+            
+            <div class="chat-input-area">
+                <input type="text" id="msgInput" placeholder="Escribe un mensaje...">
+                <button onclick="enviarMensajeChat()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-general" id="modalRestaurante">
+        <button class="close-btn" onclick="cerrarModal('modalRestaurante')">X</button>
+        <h3 style="margin:5px 0; color:#ff5722;">Restaurante "El Sabor Ayacuchano"</h3>
+        <p style="font-size:12px; color:#666;">Selecciona una opción:</p>
+        <div class="btn-accion-grupo">
+            <button class="btn-menu" onclick="verMenuEnPantalla()">Ver Menú (Carta)</button>
+            <button class="btn-pedido" onclick="abrirSistemaPedido()">Hacer Pedido</button>
+        </div>
+    </div>
+
+    <div class="modal-menu-visor" id="modalMenuVisor">
+        <button class="close-btn" onclick="cerrarModal('modalMenuVisor')">X</button>
+        <h3 style="color:#ff9800; margin-top:0;">Carta / Menú del Restaurante</h3>
+        <p style="font-size: 12px; color: #666;">Menú disponible en el establecimiento.</p>
+    </div>
+
+    <div class="modal-general" id="modalRegistroNegocio">
+        <button class="close-btn" onclick="cerrarModal('modalRegistroNegocio')">X</button>
+        <h3 style="margin-top:0; color:#25d366;">Registra tu Negocio</h3>
+        <input type="text" id="regNombre" placeholder="Tu Nombre">
+        <input type="text" id="regNumero" placeholder="Celular / WhatsApp">
+        <input type="text" id="regNegocio" placeholder="Nombre del Negocio">
+        <textarea id="regDetalle" placeholder="Detalle (Opcional)" rows="3"></textarea>
+        <button onclick="enviarRegistroWhatsApp()" style="width:100%; background:#25d366; color:white; border:none; padding:10px; border-radius:6px; font-weight:bold; cursor:pointer; margin-top:10px;">Enviar a WhatsApp</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <script>
+        let miApodo = "Viajero_97";
+        let canalActual = "abierto";
+        let viewerInstance;
+        let indiceEscenaActual = 1;
+        const totalEscenas = 10;
+
+        const listaEscenasIDs = [
+            "escena1", "escena2", "escena3", "escena4", "escena5",
+            "escena6", "escena7", "escena8", "escena9", "escena10"
+        ];
+
+        const nombresEscenas = [
+            "1. Cerro Toco", "2. Alma Inmersiva", "3. Bargate Histórico",
+            "4. Cerro Toco - Zona Alta", "5. Alma - Sector Norte", "6. Bargate - Mirador",
+            "7. Cerro Toco - Base", "8. Alma - Ribera", "9. Bargate - Cumbre", "10. Cerro Toco - Refugio"
+        ];
+
+        function iniciarPlataforma() {
+            let nick = prompt("Ingresa tu Apodo (Nick):", miApodo);
+            if(nick && nick.trim() !== "") miApodo = nick.trim();
+            document.getElementById('lblMiNick').innerText = miApodo;
+
+            viewerInstance = pannellum.viewer('panorama', {
+                "default": { "firstScene": "escena1", "autoLoad": true, "compass": true },
+                "scenes": {
+                    "escena1": {
+                        "title": "1. Cerro Toco", "type": "equirectangular", "panorama": "foto1.jpg",
+                        "hotSpots": [{
+                            "pitch": -5, "yaw": -30, "type": "info",
+                            "text": "🍽️ Restaurante El Sabor Ayacuchano",
+                            "clickHandlerFunc": () => document.getElementById('modalRestaurante').style.display = 'block'
+                        }]
+                    },
+                    "escena2": { "title": "2. Alma Inmersiva", "type": "equirectangular", "panorama": "foto2.jpg", "hotSpots": [] },
+                    "escena3": { "title": "3. Bargate Histórico", "type": "equirectangular", "panorama": "foto3.jpg", "hotSpots": [] },
+                    "escena4": { "title": "4. Cerro Toco - Zona Alta", "type": "equirectangular", "panorama": "foto4.jpg", "hotSpots": [] },
+                    "escena5": { "title": "5. Alma - Sector Norte", "type": "equirectangular", "panorama": "foto5.jpg", "hotSpots": [] },
+                    "escena6": { "title": "6. Bargate - Mirador", "type": "equirectangular", "panorama": "foto6.jpg", "hotSpots": [] },
+                    "escena7": { "title": "7. Cerro Toco - Base", "type": "equirectangular", "panorama": "foto7.jpg", "hotSpots": [] },
+                    "escena8": { "title": "8. Alma - Ribera", "type": "equirectangular", "panorama": "foto8.jpg", "hotSpots": [] },
+                    "escena9": { "title": "9. Bargate - Cumbre", "type": "equirectangular", "panorama": "foto9.jpg", "hotSpots": [] },
+                    "escena10": { "title": "10. Cerro Toco - Refugio", "type": "equirectangular", "panorama": "foto10.jpg", "hotSpots": [] }
+                }
+            });
+        }
+
+        function moverEscenaRelativa(direccion) {
+            indiceEscenaActual += direccion;
+            if(indiceEscenaActual > totalEscenas) indiceEscenaActual = 1;
+            if(indiceEscenaActual < 1) indiceEscenaActual = totalEscenas;
+
+            let idDestino = listaEscenasIDs[indiceEscenaActual - 1];
+            viewerInstance.loadScene(idDestino);
+            document.getElementById('hudTituloEscena').innerText = nombresEscenas[indiceEscenaActual - 1];
+        }
+
+        function irAEscenaSeleccionada(escenaId) {
+            if(escenaId && viewerInstance) {
+                viewerInstance.loadScene(escenaId);
+                let indexFound = listaEscenasIDs.indexOf(escenaId);
+                if(indexFound !== -1) {
+                    indiceEscenaActual = indexFound + 1;
+                    document.getElementById('hudTituloEscena').innerText = nombresEscenas[indiceEscenaActual - 1];
+                }
+                document.getElementById('buscadorLugares').value = "";
+            }
+        }
+
+        function cambiarNick() {
+            let nuevoNick = prompt("Actualiza tu Apodo:", miApodo);
+            if(nuevoNick && nuevoNick.trim() !== "") {
+                miApodo = nuevoNick.trim();
+                document.getElementById('lblMiNick').innerText = miApodo;
+            }
+        }
+
+        function toggleMinimizarSocial() { document.getElementById('socialPanel').classList.toggle('minimized'); }
+        function toggleMinimizarBot() { document.getElementById('botPanel').classList.toggle('minimized'); }
+
+        function cambiarCanal(canal) {
+            document.getElementById('tabAbierto').className = canal === 'abierto' ? 'chat-tab active' : 'chat-tab';
+            document.getElementById('tabPrivado').className = canal === 'privado' ? 'chat-tab active' : 'chat-tab';
+            document.getElementById('tabDuo').className = canal === 'duo' ? 'chat-tab active' : 'chat-tab';
+        }
+
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+        function abrirModalRegistro() { document.getElementById('modalRegistroNegocio').style.display = 'block'; }
+        function verMenuEnPantalla() { cerrarModal('modalRestaurante'); document.getElementById('modalMenuVisor').style.display = 'block'; }
+        function abrirSistemaPedido() { window.open("https://wa.me/51999999999?text=Hola,%20quiero%20hacer%20un%20pedido%20desde%20Tonada%20360", "_blank"); }
+
+        function enviarRegistroWhatsApp() {
+            let nombre = document.getElementById('regNombre').value;
+            let numero = document.getElementById('regNumero').value;
+            let negocio = document.getElementById('regNegocio').value;
+            let detalle = document.getElementById('regDetalle').value;
+            if(nombre && numero && negocio) {
+                let texto = `Hola Tonada Conecta, quiero registrar mi negocio:%0A*Nombre:* ${nombre}%0A*Celular:* ${numero}%0A*Negocio:* ${negocio}%0A*Detalle:* ${detalle}`;
+                window.open(`https://wa.me/51928362491?text=${texto}`, '_blank');
+                cerrarModal('modalRegistroNegocio');
+            } else { alert("Completa los campos obligatorios."); }
+        }
+
+        function enviarMensajeChat() {
+            const input = document.getElementById('msgInput');
+            const box = document.getElementById('boxMessages');
+            if(input.value.trim() !== "") {
+                box.innerHTML += `<p><b>${miApodo}:</b> ${input.value}</p>`;
+                input.value = "";
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function enviarMensajeBot() {
+            const input = document.getElementById('botInputText');
+            const box = document.getElementById('botMessages');
+            let texto = input.value.trim();
+            if(texto !== "") {
+                box.innerHTML += `<p><b>Tú:</b> ${texto}</p>`;
+                setTimeout(() => {
+                    box.innerHTML += `<p style="color:#00796b;"><b>Bot:</b> Usa los botones de Anterior y Siguiente abajo a la izquierda para navegar.</p>`;
+                    box.scrollTop = box.scrollHeight;
+                }, 500);
+                input.value = "";
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
